@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Box</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Gaya umum */
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Kotak Chat */
+        .chat-container {
+            width: 400px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4caf50, #2196f3);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            display: flex;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-message.ai {
+            justify-content: flex-start;
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-message.user .chat-bubble {
+            background: #4caf50;
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+
+        .chat-message.ai .chat-bubble {
+            background: #e0e0e0;
+            color: #333;
+            border-bottom-left-radius: 0;
+        }
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input button {
+            padding: 15px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .chat-input button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">AI Chat</div>
+        <div class="chat-body" id="chat-body">
+            <!-- Chat messages will be dynamically added here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Ketik pesan Anda..." autocomplete="off">
+            <button onclick="sendMessage()">Kirim</button>
+        </div>
+    </div>
+    <script>
+        const chatBody = document.getElementById('chat-body');
+        const chatInput = document.getElementById('chat-input');
+
+        // Fungsi untuk mengirim pesan
+        async function sendMessage() {
+            const userMessage = chatInput.value.trim();
+
+            if (userMessage === '') return;
+
+            // Tambahkan pesan pengguna ke UI
+            addMessageToChat('user', userMessage);
+
+            // Kosongkan input
+            chatInput.value = '';
+
+            // Kirim pesan ke API OpenAI GPT
+            const aiResponse = await getAIResponse(userMessage);
+
+            // Tambahkan respons AI ke UI
+            addMessageToChat('ai', aiResponse);
+        }
+
+        // Fungsi untuk menambahkan pesan ke UI
+        function addMessageToChat(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', sender);
+
+            const bubbleElement = document.createElement('div');
+            bubbleElement.classList.add('chat-bubble');
+            bubbleElement.textContent = message;
+
+            messageElement.appendChild(bubbleElement);
+            chatBody.appendChild(messageElement);
+
+            // Scroll ke bawah otomatis
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Fungsi untuk mendapatkan respons AI dari OpenAI
+        async function getAIResponse(userMessage) {
+            const apiKey = "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"; // Ganti dengan API Key Anda
+            const endpoint = "https://api.openai.com/v1/chat/completions";
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{ role: "user", content: userMessage }]
+                })
+            });
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+
+        // Kirim pesan dengan menekan Enter
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
